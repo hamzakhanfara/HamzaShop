@@ -1,17 +1,29 @@
-import { Component, OnInit, EventEmitter, Output } from '@angular/core';
+import { Component, OnInit, EventEmitter, Output, OnDestroy } from '@angular/core';
+import { Subscription } from 'rxjs';
+import { StoreService } from 'src/app/services/store.service';
 
 @Component({
   selector: 'app-filters',
   templateUrl:'./filters.component.html'
 })
-export class FiltersComponent implements OnInit {
-  categories = ['shoes', 'shirts','shorts']
+export class FiltersComponent implements OnInit, OnDestroy {
+  categoriesSubscription: Subscription | undefined;
+  categories: Array<string> | undefined;
   @Output() showCategory = new EventEmitter<string>();
-  constructor() { }
+  constructor(private storeService: StoreService) { }
 
   ngOnInit(): void {
+    this.categoriesSubscription= this.storeService.getAllCategories()
+    .subscribe((response) => {
+      this.categories = response;
+    });
   }
   onShowCategory(category: string): void {
     this.showCategory.next(category);
+  }
+  ngOnDestroy(): void {
+      if(this.categoriesSubscription){
+        this.categoriesSubscription.unsubscribe();
+      }
   }
 }
